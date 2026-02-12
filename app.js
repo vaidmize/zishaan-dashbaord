@@ -8,7 +8,8 @@ const ADMIN_PASS = 'zishann123';
 // Data state
 let currentLeads = [];
 let currentOrders = [];
-let isLoggedIn = false;
+let lastOrderCount = 0;
+let notifications = [];
 
 // Initialize Dashboard
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,7 +18,67 @@ document.addEventListener('DOMContentLoaded', () => {
     setupTabSwitching();
     setupSearch();
     setupModal();
+    setupNotifications();
 });
+
+function setupNotifications() {
+    const trigger = document.getElementById('notification-trigger');
+    const dropdown = document.getElementById('notif-dropdown');
+    const clearBtn = document.getElementById('clear-notif');
+
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('active');
+    });
+
+    document.addEventListener('click', () => {
+        dropdown.classList.remove('active');
+    });
+
+    clearBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        notifications = [];
+        updateNotifUI();
+    });
+}
+
+function checkNewOrders(newOrders) {
+    if (lastOrderCount > 0 && newOrders.length > lastOrderCount) {
+        const diff = newOrders.length - lastOrderCount;
+        for (let i = 0; i < diff; i++) {
+            const order = newOrders[i];
+            notifications.unshift({
+                title: 'New Order Received!',
+                msg: `${order['Name'] || 'A customer'} ordered ${order['Product name'] || 'a product'}`,
+                time: new Date().toLocaleTimeString()
+            });
+        }
+        // Play notification sound (optional)
+        // new Audio('notif.mp3').play();
+    }
+    lastOrderCount = newOrders.length;
+    updateNotifUI();
+}
+
+function updateNotifUI() {
+    const badge = document.getElementById('notif-badge');
+    const list = document.getElementById('notif-list');
+
+    if (notifications.length > 0) {
+        badge.innerText = notifications.length;
+        badge.style.display = 'block';
+        list.innerHTML = notifications.map(n => `
+            <div class="notif-item">
+                <p><strong>${n.title}</strong></p>
+                <p>${n.msg}</p>
+                <small>${n.time}</small>
+            </div>
+        `).join('');
+    } else {
+        badge.style.display = 'none';
+        list.innerHTML = '<p class="empty-notif">No new orders</p>';
+    }
+}
 
 function checkLoginSession() {
     if (localStorage.getItem('zishann_logged_in') === 'true') {
@@ -65,6 +126,7 @@ async function fetchRealData() {
             currentOrders = data;
             currentLeads = data; // Mirroring for now
             updateDashboard(currentLeads, currentOrders);
+            checkNewOrders(currentOrders);
         }
     } catch (error) {
         console.error('Error fetching CSV data:', error);
