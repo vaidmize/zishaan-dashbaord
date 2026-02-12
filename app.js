@@ -300,11 +300,18 @@ function setupTabSwitching() {
             if (item.id === 'logout-btn') return;
             e.preventDefault();
             const tab = item.getAttribute('data-tab');
+
+            // UI Update
             navItems.forEach(i => i.classList.remove('active'));
             item.classList.add('active');
 
             const overview = document.getElementById('overview');
             const settings = document.getElementById('settings');
+            const leadsList = document.getElementById('leads-list-container');
+            const ordersList = document.getElementById('orders-list-container');
+            const charts = document.querySelector('.charts-section');
+            const stats = document.querySelector('.stats-grid');
+            const tablesSection = document.querySelector('.tables-section');
 
             if (tab === 'settings') {
                 overview.style.display = 'none';
@@ -313,24 +320,24 @@ function setupTabSwitching() {
                 overview.style.display = 'block';
                 settings.style.display = 'none';
 
-                // Still handle lead/order table visibility filters in overview
-                const leadsList = document.querySelector('.recent-list.card:first-child');
-                const ordersList = document.querySelector('.recent-list.card:last-child');
-                const charts = document.querySelector('.charts-section');
-                const stats = document.querySelector('.stats-grid');
-
                 if (tab === 'overview') {
-                    stats.style.display = 'grid'; charts.style.display = 'flex';
-                    document.querySelector('.tables-section').style.gridTemplateColumns = '1fr 1fr';
-                    leadsList.style.display = 'block'; ordersList.style.display = 'block';
+                    stats.style.display = 'grid';
+                    charts.style.display = 'flex';
+                    tablesSection.style.gridTemplateColumns = '1fr 1fr';
+                    leadsList.style.display = 'block';
+                    ordersList.style.display = 'block';
                 } else if (tab === 'leads') {
-                    stats.style.display = 'none'; charts.style.display = 'none';
-                    document.querySelector('.tables-section').style.gridTemplateColumns = '1fr';
-                    leadsList.style.display = 'block'; ordersList.style.display = 'none';
+                    stats.style.display = 'none';
+                    charts.style.display = 'none';
+                    tablesSection.style.gridTemplateColumns = '1fr';
+                    leadsList.style.display = 'block';
+                    ordersList.style.display = 'none';
                 } else if (tab === 'orders') {
-                    stats.style.display = 'none'; charts.style.display = 'none';
-                    document.querySelector('.tables-section').style.gridTemplateColumns = '1fr';
-                    leadsList.style.display = 'none'; ordersList.style.display = 'block';
+                    stats.style.display = 'none';
+                    charts.style.display = 'none';
+                    tablesSection.style.gridTemplateColumns = '1fr';
+                    leadsList.style.display = 'none';
+                    ordersList.style.display = 'block';
                 }
             }
         });
