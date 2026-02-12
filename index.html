@@ -12,7 +12,25 @@
 </head>
 
 <body>
-    <div class="app-container">
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-card">
+            <i class="fas fa-shield-alt login-icon"></i>
+            <h2>Admin Login</h2>
+            <p>Enter credentials to access Zishann Dashboard</p>
+            <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" id="username" placeholder="Username">
+            </div>
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="Password">
+            </div>
+            <button id="login-btn" class="login-btn">Secure Login</button>
+            <p id="login-error" class="error-msg"></p>
+        </div>
+    </div>
+
+    <div class="app-container" id="main-app" style="display: none;">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
@@ -31,6 +49,9 @@
                 </a>
                 <a href="#" class="nav-item" data-tab="settings">
                     <i class="fas fa-cog"></i> Settings
+                </a>
+                <a href="#" class="nav-item" id="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </nav>
             <div class="sidebar-footer">
@@ -54,7 +75,7 @@
                         <span class="badge">3</span>
                     </div>
                     <img src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff" alt="Profile">
-                    <span class="user-name">Admin</span>
+                    <span class="user-name">Zishann Admin</span>
                 </div>
             </header>
 
@@ -68,7 +89,7 @@
                             <h3>Total Leads</h3>
                             <p class="stat-value" id="count-leads">0</p>
                             <span class="stat-change positive">
-                                <i class="fas fa-arrow-up"></i> 12% vs last week
+                                <i class="fas fa-arrow-up"></i> 12%
                             </span>
                         </div>
                     </div>
@@ -80,7 +101,7 @@
                             <h3>Total Orders</h3>
                             <p class="stat-value" id="count-orders">0</p>
                             <span class="stat-change positive">
-                                <i class="fas fa-arrow-up"></i> 8% vs last week
+                                <i class="fas fa-arrow-up"></i> 8%
                             </span>
                         </div>
                     </div>
@@ -91,8 +112,8 @@
                         <div class="stat-info">
                             <h3>Conversion</h3>
                             <p class="stat-value" id="conversion-rate">0%</p>
-                            <span class="stat-change negative">
-                                <i class="fas fa-arrow-down"></i> 2% vs last week
+                            <span class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i> 2%
                             </span>
                         </div>
                     </div>
@@ -102,10 +123,6 @@
                     <div class="chart-container main-chart">
                         <div class="chart-header">
                             <h2>Leads & Orders Growth</h2>
-                            <div class="chart-actions">
-                                <button class="btn-small">Weekly</button>
-                                <button class="btn-small outline">Monthly</button>
-                            </div>
                         </div>
                         <canvas id="growthChart"></canvas>
                     </div>
@@ -115,14 +132,14 @@
                     <div class="recent-list card">
                         <div class="card-header">
                             <h2>Recent Leads</h2>
-                            <button class="view-all">View All</button>
+                            <span class="info-text">Click row for details</span>
                         </div>
                         <div class="table-responsive">
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Name</th>
-                                        <th>Mobile</th>
+                                        <th>Phone / WhatsApp</th>
                                         <th>Source</th>
                                         <th>Date</th>
                                         <th>Status</th>
@@ -138,7 +155,7 @@
                     <div class="recent-list card">
                         <div class="card-header">
                             <h2>Recent Orders</h2>
-                            <button class="view-all">View All</button>
+                            <span class="info-text">Click row for details</span>
                         </div>
                         <div class="table-responsive">
                             <table>
@@ -163,6 +180,16 @@
 
             <!-- Other tabs will be handled via JS or hidden by default -->
         </main>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="details-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modal-data">
+                <!-- Data will be injected here -->
+            </div>
+        </div>
     </div>
     <script src="app.js"></script>
 </body>
