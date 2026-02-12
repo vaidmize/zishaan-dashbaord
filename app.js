@@ -1,7 +1,7 @@
 // Google Sheets CSV Export Link
 const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/18yJ7cySvgyR4sC70haKvwh-EuLpD-ygvTGcgAuK3zfI/export?format=csv&gid=15146022';
 
-// Credentials (Hardcoded for this demo, usually handled via backend)
+// Credentials
 const ADMIN_USER = 'admin';
 const ADMIN_PASS = 'zishann123';
 
@@ -42,6 +42,35 @@ function setupNotifications() {
     });
 }
 
+function updateNotifUI() {
+    const badge = document.getElementById('notif-badge');
+    const list = document.getElementById('notif-list');
+
+    if (notifications.length > 0) {
+        badge.innerText = notifications.length;
+        badge.style.display = 'block';
+        list.innerHTML = notifications.map((n, index) => `
+            <div class="notif-item" onclick="handleNotifClick(${index})">
+                <p><strong>${n.title}</strong></p>
+                <p>${n.msg}</p>
+                <small>${n.time} • Click to View</small>
+            </div>
+        `).join('');
+    } else {
+        badge.style.display = 'none';
+        list.innerHTML = '<p class="empty-notif">No new orders</p>';
+    }
+}
+
+function handleNotifClick(notifIndex) {
+    const notif = notifications[notifIndex];
+    if (notif && notif.orderIndex !== undefined) {
+        showDetails(notif.orderIndex, 'orders');
+        notifications.splice(notifIndex, 1);
+        updateNotifUI();
+    }
+}
+
 function checkNewOrders(newOrders) {
     if (lastOrderCount > 0 && newOrders.length > lastOrderCount) {
         const diff = newOrders.length - lastOrderCount;
@@ -50,34 +79,13 @@ function checkNewOrders(newOrders) {
             notifications.unshift({
                 title: 'New Order Received!',
                 msg: `${order['Name'] || 'A customer'} ordered ${order['Product name'] || 'a product'}`,
-                time: new Date().toLocaleTimeString()
+                time: new Date().toLocaleTimeString(),
+                orderIndex: i
             });
         }
-        // Play notification sound (optional)
-        // new Audio('notif.mp3').play();
     }
     lastOrderCount = newOrders.length;
     updateNotifUI();
-}
-
-function updateNotifUI() {
-    const badge = document.getElementById('notif-badge');
-    const list = document.getElementById('notif-list');
-
-    if (notifications.length > 0) {
-        badge.innerText = notifications.length;
-        badge.style.display = 'block';
-        list.innerHTML = notifications.map(n => `
-            <div class="notif-item">
-                <p><strong>${n.title}</strong></p>
-                <p>${n.msg}</p>
-                <small>${n.time}</small>
-            </div>
-        `).join('');
-    } else {
-        badge.style.display = 'none';
-        list.innerHTML = '<p class="empty-notif">No new orders</p>';
-    }
 }
 
 function checkLoginSession() {
@@ -91,10 +99,9 @@ function setupLoginLogic() {
     const logoutBtn = document.getElementById('logout-btn');
     const errorMsg = document.getElementById('login-error');
 
-    loginBtn.addEventListener('click', () => {
+    loginBtn?.addEventListener('click', () => {
         const user = document.getElementById('username').value;
         const pass = document.getElementById('password').value;
-
         if (user === ADMIN_USER && pass === ADMIN_PASS) {
             localStorage.setItem('zishann_logged_in', 'true');
             showApp();
@@ -103,7 +110,7 @@ function setupLoginLogic() {
         }
     });
 
-    logoutBtn.addEventListener('click', () => {
+    logoutBtn?.addEventListener('click', () => {
         localStorage.removeItem('zishann_logged_in');
         window.location.reload();
     });
@@ -113,7 +120,7 @@ function showApp() {
     document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('main-app').style.display = 'flex';
     fetchRealData();
-    setInterval(fetchRealData, 15000); // 15s sync
+    setInterval(fetchRealData, 15000);
 }
 
 async function fetchRealData() {
@@ -121,10 +128,9 @@ async function fetchRealData() {
         const response = await fetch(SHEET_CSV_URL);
         const csvText = await response.text();
         const data = parseCSV(csvText);
-
         if (data && data.length > 0) {
             currentOrders = data;
-            currentLeads = data; // Mirroring for now
+            currentLeads = data;
             updateDashboard(currentLeads, currentOrders);
             checkNewOrders(currentOrders);
         }
@@ -136,34 +142,21 @@ async function fetchRealData() {
 function parseCSV(csv) {
     const lines = csv.split('\n');
     if (lines.length < 2) return [];
-
-    // Improved CSV parsing for commas within quotes
     const parseLine = (line) => {
-        const result = [];
-        let cur = '';
-        let inQuotes = false;
+        const result = []; let cur = ''; let inQuotes = false;
         for (let char of line) {
             if (char === '"') inQuotes = !inQuotes;
-            else if (char === ',' && !inQuotes) {
-                result.push(cur.trim());
-                cur = '';
-            } else cur += char;
+            else if (char === ',' && !inQuotes) { result.push(cur.trim()); cur = ''; }
+            else cur += char;
         }
-        result.push(cur.trim());
-        return result;
+        result.push(cur.trim()); return result;
     }
-
     const headers = parseLine(lines[0]);
     const result = [];
-
     for (let i = 1; i < lines.length; i++) {
         if (!lines[i]) continue;
-        const obj = {};
-        const currentline = parseLine(lines[i]);
-
-        for (let j = 0; j < headers.length; j++) {
-            obj[headers[j]] = currentline[j] || '';
-        }
+        const obj = {}; const currentline = parseLine(lines[i]);
+        for (let j = 0; j < headers.length; j++) { obj[headers[j]] = currentline[j] || ''; }
         result.push(obj);
     }
     return result;
@@ -172,10 +165,8 @@ function parseCSV(csv) {
 function updateDashboard(leads, orders) {
     document.getElementById('count-leads').innerText = leads.length;
     document.getElementById('count-orders').innerText = orders.length;
-
     const conversion = leads.length > 0 ? ((orders.length / leads.length) * 100).toFixed(1) : 0;
     document.getElementById('conversion-rate').innerText = `${conversion}%`;
-
     renderLeads(leads);
     renderOrders(orders);
     initChart(leads, orders);
@@ -183,11 +174,7 @@ function updateDashboard(leads, orders) {
 
 function renderLeads(leads) {
     const leadsBody = document.getElementById('leads-body');
-    if (leads.length === 0) {
-        leadsBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem;">No data found</td></tr>';
-        return;
-    }
-
+    if (leads.length === 0) { leadsBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem;">No data found</td></tr>'; return; }
     leadsBody.innerHTML = leads.map((lead, index) => `
         <tr onclick="showDetails(${index}, 'leads')">
             <td>
@@ -198,7 +185,7 @@ function renderLeads(leads) {
             </td>
             <td>${lead['Phone / WhatsApp number'] || '-'}</td>
             <td>Website</td>
-            <td>-</td>
+            <td>New</td>
             <td><span class="status-pill new">Active</span></td>
         </tr>
     `).join('');
@@ -206,20 +193,14 @@ function renderLeads(leads) {
 
 function renderOrders(orders) {
     const ordersBody = document.getElementById('orders-body');
-    if (orders.length === 0) {
-        ordersBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">No data found</td></tr>';
-        return;
-    }
-
+    if (orders.length === 0) { ordersBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">No data found</td></tr>'; return; }
     ordersBody.innerHTML = orders.map((order, index) => `
         <tr onclick="showDetails(${index}, 'orders')">
             <td style="font-weight: 600;">${order['Name'] || 'Guest'}</td>
             <td>${order['Phone / WhatsApp number'] || '-'}</td>
             <td>${order['Product name'] || 'Jhumar'}</td>
             <td>${order['quantity'] || '1'}</td>
-            <td style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                ${order['address'] || '-'}
-            </td>
+            <td style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${order['address'] || '-'}</td>
             <td><span class="status-pill completed">Confirmed</span></td>
         </tr>
     `).join('');
@@ -229,7 +210,6 @@ function showDetails(index, type) {
     const data = type === 'leads' ? currentLeads[index] : currentOrders[index];
     const modal = document.getElementById('details-modal');
     const modalData = document.getElementById('modal-data');
-
     modalData.innerHTML = `
         <div class="modal-details">
             <h2><i class="fas fa-user-circle"></i> Customer Details</h2>
@@ -240,12 +220,8 @@ function showDetails(index, type) {
             <div class="detail-row"><label>Address:</label> <span style="text-align: right; max-width: 60%;">${data['address'] || 'N/A'}</span></div>
             <div class="detail-row"><label>Order Status:</label> <span class="status-pill completed">Confirmed</span></div>
             <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-                <a href="tel:${data['Phone / WhatsApp number']}" class="btn-small" style="text-decoration: none; display: flex; align-items: center; gap: 5px; background: #10b981;">
-                    <i class="fas fa-phone"></i> Call Customer
-                </a>
-                <a href="https://wa.me/${data['Phone / WhatsApp number']}" target="_blank" class="btn-small" style="text-decoration: none; display: flex; align-items: center; gap: 5px; background: #25D366;">
-                    <i class="fab fa-whatsapp"></i> WhatsApp
-                </a>
+                <a href="tel:${data['Phone / WhatsApp number']}" class="btn-small" style="text-decoration: none; background: #10b981; color: white; padding: 10px 15px; border-radius: 8px;">Call</a>
+                <a href="https://wa.me/${data['Phone / WhatsApp number']}" target="_blank" style="text-decoration: none; background: #25D366; color: white; padding: 10px 15px; border-radius: 8px;">WhatsApp</a>
             </div>
         </div>
     `;
@@ -255,11 +231,8 @@ function showDetails(index, type) {
 function setupModal() {
     const modal = document.getElementById('details-modal');
     const closeBtn = document.getElementsByClassName('close-modal')[0];
-
     closeBtn.onclick = () => { modal.style.display = 'none'; }
-    window.onclick = (event) => {
-        if (event.target == modal) { modal.style.display = 'none'; }
-    }
+    window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; }
 }
 
 function setupTabSwitching() {
@@ -269,14 +242,11 @@ function setupTabSwitching() {
             if (item.id === 'logout-btn') return;
             e.preventDefault();
             const tab = item.getAttribute('data-tab');
-            navItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-
+            navItems.forEach(i => i.classList.remove('active')); item.classList.add('active');
             const leadsList = document.querySelector('.recent-list.card:first-child');
             const ordersList = document.querySelector('.recent-list.card:last-child');
             const charts = document.querySelector('.charts-section');
             const stats = document.querySelector('.stats-grid');
-
             if (tab === 'overview') {
                 stats.style.display = 'grid'; charts.style.display = 'flex';
                 document.querySelector('.tables-section').style.gridTemplateColumns = '1fr 1fr';
@@ -296,12 +266,10 @@ function setupTabSwitching() {
 
 function setupSearch() {
     const searchInput = document.querySelector('.search-bar input');
-    searchInput.addEventListener('input', (e) => {
+    searchInput?.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase();
-        const rows = document.querySelectorAll('tbody tr');
-        rows.forEach(row => {
-            const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(query) ? '' : 'none';
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
         });
     });
 }
@@ -310,18 +278,35 @@ let chartInstance = null;
 function initChart(leads, orders) {
     const ctx = document.getElementById('growthChart')?.getContext('2d');
     if (!ctx) return;
-    if (chartInstance) { chartInstance.destroy(); }
+    if (chartInstance) chartInstance.destroy();
+
+    // Data-driven logic: Count orders per product for a bar chart
+    const productCounts = {};
+    orders.forEach(o => {
+        const p = o['Product name'] || 'Unknown';
+        productCounts[p] = (productCounts[p] || 0) + 1;
+    });
+
+    const labels = Object.keys(productCounts).slice(0, 7);
+    const data = Object.values(productCounts).slice(0, 7);
+
     chartInstance = new Chart(ctx, {
-        type: 'line',
+        type: 'bar', // Better for per-product data
         data: {
-            labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+            labels: labels.length > 0 ? labels : ['No Data'],
             datasets: [{
-                label: 'Orders Sync',
-                data: [orders.length, orders.length + 1, orders.length - 1, orders.length + 2, orders.length, orders.length - 1, orders.length],
-                borderColor: '#6366f1', borderWidth: 3, tension: 0.4, fill: true,
-                backgroundColor: 'rgba(99, 102, 241, 0.1)'
+                label: 'Order Volume by Product',
+                data: data.length > 0 ? data : [0],
+                backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                borderColor: '#6366f1',
+                borderWidth: 1,
+                borderRadius: 8
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
+        }
     });
 }
