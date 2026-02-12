@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zishann Lighting | Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-lightbulb"></i>
+                <span>Zishann Admin</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-tab="overview">
+                    <i class="fas fa-th-large"></i> Overview
+                </a>
+                <a href="#" class="nav-item" data-tab="leads">
+                    <i class="fas fa-user-plus"></i> Leads
+                </a>
+                <a href="#" class="nav-item" data-tab="orders">
+                    <i class="fas fa-shopping-cart"></i> Orders
+                </a>
+                <a href="#" class="nav-item" data-tab="settings">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="pulse"></span>
+                    Live System
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search leads, orders...">
+                </div>
+                <div class="user-profile">
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=0D8ABC&color=fff" alt="Profile">
+                    <span class="user-name">Admin</span>
+                </div>
+            </header>
+
+            <div class="dashboard-content" id="overview">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon leads">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Leads</h3>
+                            <p class="stat-value" id="count-leads">0</p>
+                            <span class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i> 12% vs last week
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orders">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Orders</h3>
+                            <p class="stat-value" id="count-orders">0</p>
+                            <span class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i> 8% vs last week
+                            </span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon revenue">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Conversion</h3>
+                            <p class="stat-value" id="conversion-rate">0%</p>
+                            <span class="stat-change negative">
+                                <i class="fas fa-arrow-down"></i> 2% vs last week
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-section">
+                    <div class="chart-container main-chart">
+                        <div class="chart-header">
+                            <h2>Leads & Orders Growth</h2>
+                            <div class="chart-actions">
+                                <button class="btn-small">Weekly</button>
+                                <button class="btn-small outline">Monthly</button>
+                            </div>
+                        </div>
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="tables-section">
+                    <div class="recent-list card">
+                        <div class="card-header">
+                            <h2>Recent Leads</h2>
+                            <button class="view-all">View All</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Mobile</th>
+                                        <th>Source</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leads-body">
+                                    <!-- Real-time data will load here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="recent-list card">
+                        <div class="card-header">
+                            <h2>Recent Orders</h2>
+                            <button class="view-all">View All</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Phone / WhatsApp</th>
+                                        <th>Product Name</th>
+                                        <th>Qty</th>
+                                        <th>Address</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-body">
+                                    <!-- Real-time data will load here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other tabs will be handled via JS or hidden by default -->
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+
+</html>
