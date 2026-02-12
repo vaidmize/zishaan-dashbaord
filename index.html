@@ -187,6 +187,48 @@
                 </div>
             </div>
 
+            <!-- Settings Section -->
+            <div class="dashboard-content" id="settings" style="display: none;">
+                <div class="settings-grid">
+                    <div class="settings-card card">
+                        <div class="card-header">
+                            <h2><i class="fas fa-network-wired"></i> CRM Integration</h2>
+                            <p>Connect your dashboard data to external CRM systems</p>
+                        </div>
+                        <div class="settings-body">
+                            <div class="input-field">
+                                <label>CRM Webhook URL</label>
+                                <input type="text" id="crm-url"
+                                    placeholder="https://n8n.your-instance.com/webhook/crm-sync">
+                                <small>All leads and orders will be sent to this URL when synced.</small>
+                            </div>
+                            <div class="sync-actions">
+                                <button id="sync-crm-btn" class="login-btn">
+                                    <i class="fas fa-sync"></i> Sync All Data to CRM
+                                </button>
+                                <p id="sync-status" class="status-text"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card card">
+                        <div class="card-header">
+                            <h2><i class="fas fa-user-cog"></i> Admin Settings</h2>
+                        </div>
+                        <div class="settings-body">
+                            <div class="input-field">
+                                <label>Business Name</label>
+                                <input type="text" value="Zishann Lighting" readonly>
+                            </div>
+                            <div class="input-field">
+                                <label>Refresh Interval (Seconds)</label>
+                                <input type="number" value="15" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Other tabs will be handled via JS or hidden by default -->
         </main>
     </div>

@@ -626,8 +626,75 @@ tbody tr:hover {
     background: #f8fafc;
 }
 
-@media (max-width: 1200px) {
-    .tables-section {
+/* Settings Section */
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    padding: 1rem;
+}
+
+.settings-card {
+    padding: 2rem;
+}
+
+.settings-body {
+    margin-top: 1.5rem;
+}
+
+.input-field {
+    margin-bottom: 2rem;
+}
+
+.input-field label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+}
+
+.input-field input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.input-field input:focus {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.input-field small {
+    display: block;
+    margin-top: 0.5rem;
+    color: var(--text-muted);
+}
+
+.sync-actions {
+    margin-top: 2rem;
+}
+
+.status-text {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.status-text.success {
+    color: #10b981;
+}
+
+.status-text.error {
+    color: #ef4444;
+}
+
+@media (max-width: 992px) {
+    .settings-grid {
         grid-template-columns: 1fr;
     }
 }

@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSearch();
     setupModal();
     setupNotifications();
+    setupSettings();
 });
 
 function setupNotifications() {
@@ -86,6 +87,57 @@ function checkNewOrders(newOrders) {
     }
     lastOrderCount = newOrders.length;
     updateNotifUI();
+}
+
+function setupSettings() {
+    const crmUrlInput = document.getElementById('crm-url');
+    const syncBtn = document.getElementById('sync-crm-btn');
+    const statusText = document.getElementById('sync-status');
+
+    // Load saved CRM URL
+    const savedUrl = localStorage.getItem('crm_webhook_url');
+    if (savedUrl) crmUrlInput.value = savedUrl;
+
+    syncBtn?.addEventListener('click', async () => {
+        const url = crmUrlInput.value.trim();
+        if (!url) {
+            statusText.innerText = 'Please enter a CRM Webhook URL';
+            statusText.className = 'status-text error';
+            return;
+        }
+
+        // Save URL for future Use
+        localStorage.setItem('crm_webhook_url', url);
+
+        statusText.innerText = 'Syncing data to CRM...';
+        statusText.className = 'status-text';
+        syncBtn.disabled = true;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    source: 'Zishann Dashboard',
+                    timestamp: new Date().toISOString(),
+                    leads: currentLeads,
+                    orders: currentOrders
+                })
+            });
+
+            if (response.ok) {
+                statusText.innerText = '✅ Data synced successfully to CRM!';
+                statusText.className = 'status-text success';
+            } else {
+                throw new Error('Sync failed');
+            }
+        } catch (error) {
+            statusText.innerText = '❌ Error syncing to CRM. Check URL and connection.';
+            statusText.className = 'status-text error';
+        } finally {
+            syncBtn.disabled = false;
+        }
+    });
 }
 
 function checkLoginSession() {
@@ -174,64 +226,70 @@ function updateDashboard(leads, orders) {
 
 function renderLeads(leads) {
     const leadsBody = document.getElementById('leads-body');
-    if (leads.length === 0) { leadsBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem;">No data found</td></tr>'; return; }
-    leadsBody.innerHTML = leads.map((lead, index) => `
-        <tr onclick="showDetails(${index}, 'leads')">
-            <td>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <img src="https://ui-avatars.com/api/?name=${lead['Name'] || 'User'}&background=random" style="width: 32px; border-radius: 50%;">
-                    <span>${lead['Name'] || 'No Name'}</span>
-                </div>
-            </td>
-            <td>${lead['Phone / WhatsApp number'] || '-'}</td>
-            <td>Website</td>
-            <td>New</td>
-            <td><span class="status-pill new">Active</span></td>
-        </tr>
-    `).join('');
+    if (leadsBody) {
+        if (leads.length === 0) { leadsBody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem;">No data found</td></tr>'; return; }
+        leadsBody.innerHTML = leads.map((lead, index) => `
+            <tr onclick="showDetails(${index}, 'leads')">
+                <td>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <img src="https://ui-avatars.com/api/?name=${lead['Name'] || 'User'}&background=random" style="width: 32px; border-radius: 50%;">
+                        <span>${lead['Name'] || 'No Name'}</span>
+                    </div>
+                </td>
+                <td>${lead['Phone / WhatsApp number'] || '-'}</td>
+                <td>Website</td>
+                <td>New</td>
+                <td><span class="status-pill new">Active</span></td>
+            </tr>
+        `).join('');
+    }
 }
 
 function renderOrders(orders) {
     const ordersBody = document.getElementById('orders-body');
-    if (orders.length === 0) { ordersBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">No data found</td></tr>'; return; }
-    ordersBody.innerHTML = orders.map((order, index) => `
-        <tr onclick="showDetails(${index}, 'orders')">
-            <td style="font-weight: 600;">${order['Name'] || 'Guest'}</td>
-            <td>${order['Phone / WhatsApp number'] || '-'}</td>
-            <td>${order['Product name'] || 'Jhumar'}</td>
-            <td>${order['quantity'] || '1'}</td>
-            <td style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${order['address'] || '-'}</td>
-            <td><span class="status-pill completed">Confirmed</span></td>
-        </tr>
-    `).join('');
+    if (ordersBody) {
+        if (orders.length === 0) { ordersBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">No data found</td></tr>'; return; }
+        ordersBody.innerHTML = orders.map((order, index) => `
+            <tr onclick="showDetails(${index}, 'orders')">
+                <td style="font-weight: 600;">${order['Name'] || 'Guest'}</td>
+                <td>${order['Phone / WhatsApp number'] || '-'}</td>
+                <td>${order['Product name'] || 'Jhumar'}</td>
+                <td>${order['quantity'] || '1'}</td>
+                <td style="max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${order['address'] || '-'}</td>
+                <td><span class="status-pill completed">Confirmed</span></td>
+            </tr>
+        `).join('');
+    }
 }
 
 function showDetails(index, type) {
     const data = type === 'leads' ? currentLeads[index] : currentOrders[index];
     const modal = document.getElementById('details-modal');
     const modalData = document.getElementById('modal-data');
-    modalData.innerHTML = `
-        <div class="modal-details">
-            <h2><i class="fas fa-user-circle"></i> Customer Details</h2>
-            <div class="detail-row"><label>Full Name:</label> <span>${data['Name'] || 'N/A'}</span></div>
-            <div class="detail-row"><label>Phone/WhatsApp:</label> <span>${data['Phone / WhatsApp number'] || 'N/A'}</span></div>
-            <div class="detail-row"><label>Product:</label> <span>${data['Product name'] || 'N/A'}</span></div>
-            <div class="detail-row"><label>Quantity:</label> <span>${data['quantity'] || 'N/A'}</span></div>
-            <div class="detail-row"><label>Address:</label> <span style="text-align: right; max-width: 60%;">${data['address'] || 'N/A'}</span></div>
-            <div class="detail-row"><label>Order Status:</label> <span class="status-pill completed">Confirmed</span></div>
-            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
-                <a href="tel:${data['Phone / WhatsApp number']}" class="btn-small" style="text-decoration: none; background: #10b981; color: white; padding: 10px 15px; border-radius: 8px;">Call</a>
-                <a href="https://wa.me/${data['Phone / WhatsApp number']}" target="_blank" style="text-decoration: none; background: #25D366; color: white; padding: 10px 15px; border-radius: 8px;">WhatsApp</a>
+    if (modal && modalData) {
+        modalData.innerHTML = `
+            <div class="modal-details">
+                <h2><i class="fas fa-user-circle"></i> Customer Details</h2>
+                <div class="detail-row"><label>Full Name:</label> <span>${data['Name'] || 'N/A'}</span></div>
+                <div class="detail-row"><label>Phone/WhatsApp:</label> <span>${data['Phone / WhatsApp number'] || 'N/A'}</span></div>
+                <div class="detail-row"><label>Product:</label> <span>${data['Product name'] || 'N/A'}</span></div>
+                <div class="detail-row"><label>Quantity:</label> <span>${data['quantity'] || 'N/A'}</span></div>
+                <div class="detail-row"><label>Address:</label> <span style="text-align: right; max-width: 60%;">${data['address'] || 'N/A'}</span></div>
+                <div class="detail-row"><label>Order Status:</label> <span class="status-pill completed">Confirmed</span></div>
+                <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                    <a href="tel:${data['Phone / WhatsApp number']}" class="btn-small" style="text-decoration: none; background: #10b981; color: white; padding: 10px 15px; border-radius: 8px;">Call</a>
+                    <a href="https://wa.me/${data['Phone / WhatsApp number']}" target="_blank" style="text-decoration: none; background: #25D366; color: white; padding: 10px 15px; border-radius: 8px;">WhatsApp</a>
+                </div>
             </div>
-        </div>
-    `;
-    modal.style.display = 'block';
+        `;
+        modal.style.display = 'block';
+    }
 }
 
 function setupModal() {
     const modal = document.getElementById('details-modal');
     const closeBtn = document.getElementsByClassName('close-modal')[0];
-    closeBtn.onclick = () => { modal.style.display = 'none'; }
+    if (closeBtn) closeBtn.onclick = () => { modal.style.display = 'none'; }
     window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; }
 }
 
@@ -242,23 +300,38 @@ function setupTabSwitching() {
             if (item.id === 'logout-btn') return;
             e.preventDefault();
             const tab = item.getAttribute('data-tab');
-            navItems.forEach(i => i.classList.remove('active')); item.classList.add('active');
-            const leadsList = document.querySelector('.recent-list.card:first-child');
-            const ordersList = document.querySelector('.recent-list.card:last-child');
-            const charts = document.querySelector('.charts-section');
-            const stats = document.querySelector('.stats-grid');
-            if (tab === 'overview') {
-                stats.style.display = 'grid'; charts.style.display = 'flex';
-                document.querySelector('.tables-section').style.gridTemplateColumns = '1fr 1fr';
-                leadsList.style.display = 'block'; ordersList.style.display = 'block';
-            } else if (tab === 'leads') {
-                stats.style.display = 'none'; charts.style.display = 'none';
-                document.querySelector('.tables-section').style.gridTemplateColumns = '1fr';
-                leadsList.style.display = 'block'; ordersList.style.display = 'none';
-            } else if (tab === 'orders') {
-                stats.style.display = 'none'; charts.style.display = 'none';
-                document.querySelector('.tables-section').style.gridTemplateColumns = '1fr';
-                leadsList.style.display = 'none'; ordersList.style.display = 'block';
+            navItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+
+            const overview = document.getElementById('overview');
+            const settings = document.getElementById('settings');
+
+            if (tab === 'settings') {
+                overview.style.display = 'none';
+                settings.style.display = 'block';
+            } else {
+                overview.style.display = 'block';
+                settings.style.display = 'none';
+
+                // Still handle lead/order table visibility filters in overview
+                const leadsList = document.querySelector('.recent-list.card:first-child');
+                const ordersList = document.querySelector('.recent-list.card:last-child');
+                const charts = document.querySelector('.charts-section');
+                const stats = document.querySelector('.stats-grid');
+
+                if (tab === 'overview') {
+                    stats.style.display = 'grid'; charts.style.display = 'flex';
+                    document.querySelector('.tables-section').style.gridTemplateColumns = '1fr 1fr';
+                    leadsList.style.display = 'block'; ordersList.style.display = 'block';
+                } else if (tab === 'leads') {
+                    stats.style.display = 'none'; charts.style.display = 'none';
+                    document.querySelector('.tables-section').style.gridTemplateColumns = '1fr';
+                    leadsList.style.display = 'block'; ordersList.style.display = 'none';
+                } else if (tab === 'orders') {
+                    stats.style.display = 'none'; charts.style.display = 'none';
+                    document.querySelector('.tables-section').style.gridTemplateColumns = '1fr';
+                    leadsList.style.display = 'none'; ordersList.style.display = 'block';
+                }
             }
         });
     });
@@ -280,7 +353,6 @@ function initChart(leads, orders) {
     if (!ctx) return;
     if (chartInstance) chartInstance.destroy();
 
-    // Data-driven logic: Count orders per product for a bar chart
     const productCounts = {};
     orders.forEach(o => {
         const p = o['Product name'] || 'Unknown';
@@ -291,7 +363,7 @@ function initChart(leads, orders) {
     const data = Object.values(productCounts).slice(0, 7);
 
     chartInstance = new Chart(ctx, {
-        type: 'bar', // Better for per-product data
+        type: 'bar',
         data: {
             labels: labels.length > 0 ? labels : ['No Data'],
             datasets: [{
